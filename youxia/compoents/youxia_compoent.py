@@ -46,6 +46,10 @@ class YouxiaCompoent:
     def get_device_info_by_user_id(self, uid):
         pass
 
+    @abstractmethod
+    def get_top_user_id(self):
+        pass
+
 
 class YouxiaCompoentImpl(YouxiaCompoent):
     def __init__(self, db_url):
@@ -224,6 +228,23 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         """
 
         return model.DeviceInfo.get(user=uid)
+
+    def get_top_user_id(self):
+        """
+        获取数据库中最大的userid
+
+        Returns:
+            int: 用户id
+        """
+        user = model.UserInfo.select().order_by(model.UserInfo.uid.desc()).limit(1).get()
+
+        if user:
+            return user
+        else:
+            return 0
+    def count_location_by_user_id(self, uid):
+        user = self.get_user_by_id(uid)
+        return model.Location.select().where(model.Location.user == user).count()
 
     def __fill_json_to_user_info__(self, user_info, user_info_json_dict):
         date_format = '%Y-%M-%d'
