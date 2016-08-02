@@ -10,6 +10,7 @@ import util
 
 logger = util.get_logger("YouxiaDao")
 
+
 class YouxiaCompoent:
     __metaclass__ = ABCMeta
 
