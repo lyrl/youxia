@@ -4,7 +4,7 @@
 import datetime
 import json
 from abc import ABCMeta, abstractmethod
-import youxia.compoents.Model as model
+import youxia.compoents.model as model
 import util
 
 
