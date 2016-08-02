@@ -16,7 +16,7 @@ class YouxiaConnectorCompoent:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_imei(self, id):
+    def get_user_info(self, id):
         pass
 
     @abstractmethod
@@ -24,7 +24,7 @@ class YouxiaConnectorCompoent:
         pass
 
     @abstractmethod
-    def get_base_info(self, imei):
+    def get_device_info(self, imei):
         pass
 
 
@@ -32,7 +32,7 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
     def __init__(self):
         pass
 
-    def get_base_info(self, imei):
+    def get_device_info(self, imei):
         """获取基本信息
             Args:
                 imei (str): 设备上手机卡的imei号
@@ -97,7 +97,7 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
             """
         return self.__youxia_read__(YOUXIA_IMEI_GPS % imei)
 
-    def get_imei(self, id):
+    def get_user_info(self, id):
         """通过id尝试获取imei号
 
             Args:
@@ -122,7 +122,6 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
                 IOError: An error occurred accessing the bigtable.Table object.
             """
         return self.__youxia_read__(YOUXIA_ID_IMEI % id)
-
 
     def __youxia_read__(self, url):
         try:

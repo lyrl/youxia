@@ -1,38 +1,245 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # Created on 2016-07-26 11:04:34
+import datetime
+import json
 from abc import ABCMeta, abstractmethod
-import urllib2
-import peewee
+import youxia.compoents.Model as model
 
 
 class YouxiaCompoent:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def save_base_info(self, base_info):
+    def save_device_info(self, device_info, uid):
         pass
 
     @abstractmethod
-    def save_location(self, location):
+    def update_device_info(self, device_info, uid):
         pass
 
     @abstractmethod
-    def save_user_info(self, location):
+    def save_location(self, location, uid):
         pass
+
+    @abstractmethod
+    def update_location(self, location, uid):
+        pass
+
+    @abstractmethod
+    def save_user_info(self, user_info, id):
+        pass
+
+    @abstractmethod
+    def update_user_info(self, user_info, id):
+        pass
+
+    @abstractmethod
+    def get_user_by_id(self, uid):
+        pass
+
+    @abstractmethod
+    def get_device_info_by_user_id(self, uid):
+        pass
+
+
 
 
 class YouxiaCompoentImpl(YouxiaCompoent):
-    def __init__(self):
-        pass
+    def __init__(self, db_url):
+        """
+        Youxia 数据库访问层
+        暂支持sqlite3
 
-    def save_user_info(self, location):
-        pass
+        Args:
+            db_url (str): sqlite3数据库文件路径 eg: /root/sqlite3.db
+        """
 
-    def save_location(self, location):
-        pass
+        model.deferred_db.init(db_url)
 
-    def save_base_info(self, base_info):
-        pass
+        try:
+            model.deferred_db.connect()
+        except Exception as e:
+            raise YouxiaException('数据库连接失败: ' + e.message)
+
+    def save_user_info(self, user_info, id):
+        """
+        保存用户信息
+
+        Args:
+            user_info (str): 用户信息 json 形式
+            id (int): 用户id
+
+            eg:
+            {
+              "STARTTIME": "2016-04-10",
+              "ENDDATE": "2017-04-10",
+              "NICKNAME": null,
+              "AVATOR": null,
+              "MODEL": null,
+              "BRAND": null,
+              "MID": "56001167",
+              "VERSION": "k61",
+              "IMEI": "356802030712896",
+              "avator_url": "http://photo.moootooo.com/images/header.jpg"
+            }
+        """
+        user_info_json_dict = json.loads(user_info)
+        user_info = model.UserInfo()
+
+        user_info.uid = id
+        self.__fill_json_to_user_info__(user_info, user_info_json_dict)
+        user_info.create_time = datetime.datetime.now()
+        user_info.save()
+
+    def save_location(self, location, uid):
+        """
+        保存位置信息、轨迹
+
+        Args:
+            location (str): 用户信息 json 形式
+            uid (int): 用户id
+        """
+        user_info = self.get_user_by_id(uid)
+        location_json_dict = json.loads(location)
+
+        if not user_info:
+            raise YouxiaDaoException("用户id %s 不存在，无法保存位置信息!" % uid)
+
+        location = model.Location()
+        self.__fill_json_to_location_info__(location, location_json_dict)
+        location.user = user_info
+        location.create_time = datetime.datetime.now()
+        location.save()
+
+    def save_device_info(self, device_info, uid):
+        """
+        保存设备信息
+
+        Args:
+            device_info (str): 设备信息 json 形式
+            uid (int): 用户id
+        """
+
+        user_info = self.get_user_by_id(uid)
+        device_info_json_dict = json.loads(device_info)
+
+        if not user_info:
+            raise YouxiaDaoException("用户id %s 不存在，无法保存位置信息!" % uid)
+
+        device_info = model.DeviceInfo()
+        self.__fill_json_to_device_info__(device_info, device_info_json_dict)
+        device_info.create_time = datetime.datetime.now()
+        device_info.save()
+
+    def update_location(self, location, uid):
+        """
+        更新位置信息
+
+        Args:
+            uid (int): 用户唯一标识
+            location (str): json形式的位置信息
+        """
+        location_json_dict = json.loads(location)
+        user_info = self.get_user_by_id(uid)
+        location = model.Location()
+
+        location.user = user_info
+        self.__fill_json_to_location_info__(location, location_json_dict)
+        location.last_fetch_time = datetime.datetime.now()
+
+    def update_device_info(self, device_info, uid):
+        device_info_json_dict = json.loads(device_info)
+        device_info = self.get_device_info_by_user_id(uid)
+
+        self.__fill_json_to_device_info__(device_info, device_info_json_dict)
+
+        device_info.save()
+
+    def update_user_info(self, user_info, id):
+        user_info_json_dict = json.loads(user_info)
+        user_info = self.get_user_by_id(id)
+
+        self.__fill_json_to_user_info__(user_info, user_info_json_dict)
+        user_info.save()
+
+    def get_user_by_id(self, uid):
+        """
+        根据uid查询
+
+        Args:
+            uid (int): 用户唯一标识
+        Returns:
+            model.UserInfo: 用户对象
+        """
+        return model.UserInfo.get(uid=uid)
+
+    def get_device_info_by_user_id(self, uid):
+        """
+        根据用户id查询设备信息
+
+        Args:
+            uid (int): 用户唯一标识
+        Returns:
+            model.DeviceInfo: 位置信息对象
+        """
+
+        return model.DeviceInfo.get(user=uid)
+
+    def __fill_json_to_user_info__(self, user_info, user_info_json_dict):
+        date_format = '%Y-%M-%d'
+        user_info.start_time = datetime.datetime.strptime(user_info_json_dict['STARTTIME'], date_format)
+        user_info.end_time = datetime.datetime.strptime(user_info_json_dict['ENDDATE'], date_format)
+        user_info.nick_name = user_info_json_dict['NICKNAME']
+        user_info.mid = user_info_json_dict['MID']
+        user_info.version = user_info_json_dict['VERSION']
+        user_info.imei = user_info_json_dict['IMEI']
+        user_info.avator_url = user_info_json_dict['avator_url']
+        user_info.update_time = datetime.datetime.now()
+        user_info.last_fetch_time = datetime.datetime.now()
+
+    def __fill_json_to_location_info__(self, location, location_json_dict):
+        date_time_format = '%Y-%m-%d %H:%M:%S'
+        location.longitude = location_json_dict['lat']
+        location.latitude = location_json_dict['lng']
+        location.speed = location_json_dict['speed']
+        location.time = datetime.datetime.strptime(location_json_dict['time'], date_time_format)
+        location.update_time = datetime.datetime.now()
+        location.last_fetch_time = datetime.datetime.now()
+
+    def __fill_json_to_device_info__(self, device_info, device_info_json_dict):
+        device_info.gsm = device_info_json_dict['gsm']
+        device_info.gps = device_info_json_dict['gps']
+        device_info.gps_ok = device_info_json_dict['gps_ok']
+        device_info.check_power = device_info_json_dict['check_power']
+        device_info.check_mswitch = device_info_json_dict['check_mswitch']
+        device_info.device_status = device_info_json_dict['device_status']
+        device_info.gps_status = device_info_json_dict['gps_status']
+        device_info.haiba = device_info_json_dict['haiba']
+        device_info.sensity = device_info_json_dict['sensity']
+        device_info.longitude = device_info_json_dict['lat']
+        device_info.latitude = device_info_json_dict['long']
+        device_info.power = device_info_json_dict['power']
+        device_info.bufang = device_info_json_dict['bufang']
+        device_info.status2 = device_info_json_dict['status2']
+        device_info.create_time = datetime.datetime.now()
+        device_info.update_time = datetime.datetime.now()
+        device_info.last_fetch_time = datetime.datetime.now()
+
+
+class YouxiaException(Exception):
+    def __init__(self, msg):
+        self.message = msg
+
+    def __str__(self):
+        return self.message
+
+
+class YouxiaDaoException(YouxiaException):
+    def __init__(self, msg):
+        self.message = msg
+
+    def __str__(self):
+        return self.message
 
 

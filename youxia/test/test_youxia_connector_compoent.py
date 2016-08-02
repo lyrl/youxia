@@ -11,7 +11,7 @@ class YouxiaConnectorTestCase(unittest.TestCase):
 
     def test_get_imei(self):
         yci = yc.YouxiaConnectorCompoentImpl()
-        content = yci.get_imei(1000271859)
+        content = yci.get_user_info(1000271859)
         print content
         co = json.loads(content)
         print json.dumps(co)
@@ -19,15 +19,15 @@ class YouxiaConnectorTestCase(unittest.TestCase):
 
     def test_get_gps(self):
         yci = yc.YouxiaConnectorCompoentImpl()
-        content = yci.get_imei(1000271859)
+        content = yci.get_user_info(1000271859)
         co = json.loads(content)
         print yci.get_location(co['IMEI'])
 
     def test_get_base_info(self):
         yci = yc.YouxiaConnectorCompoentImpl()
-        content = yci.get_imei(1000271859)
+        content = yci.get_user_info(1000271859)
         co = json.loads(content)
-        c = yci.get_base_info(co['IMEI'])
+        c = yci.get_device_info(co['IMEI'])
         print c
 
     def test_docstr(self):

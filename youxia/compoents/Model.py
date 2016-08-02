@@ -18,10 +18,11 @@ class UserInfo(BaseModel):
     mid = peewee.IntegerField(null=True)
     imei = peewee.CharField(null=True)
     avator_url = peewee.CharField(null=True)
+    version = peewee.CharField(null=True)
 
     create_time = peewee.DateTimeField(null=True)
     update_time = peewee.DateTimeField(null=True)
-    fetch_time = peewee.DateTimeField(null=True)
+    last_fetch_time = peewee.DateTimeField(null=True)
 
 
 class Location(BaseModel):
@@ -29,11 +30,11 @@ class Location(BaseModel):
     longitude = peewee.DoubleField()
     latitude = peewee.DoubleField()
     speed = peewee.DoubleField()
+    time = peewee.DateTimeField()
 
     create_time = peewee.DateTimeField(null=True)
     update_time = peewee.DateTimeField(null=True)
-    fetch_time = peewee.DateTimeField(null=True)
-
+    last_fetch_time = peewee.DateTimeField(null=True)
 
 
 class DeviceInfo(BaseModel):
@@ -55,5 +56,5 @@ class DeviceInfo(BaseModel):
 
     create_time = peewee.DateTimeField(null=True)
     update_time = peewee.DateTimeField(null=True)
-    fetch_time = peewee.DateTimeField(null=True)
+    last_fetch_time = peewee.DateTimeField(null=True)
 
