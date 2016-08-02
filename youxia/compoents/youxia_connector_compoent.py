@@ -3,12 +3,13 @@
 # Created on 2016-07-26 11:04:34
 from abc import ABCMeta, abstractmethod
 import urllib2
+import util
 
-import time
+logger = util.get_logger("YouxiaConnector")
 
 YOUXIA_ID_IMEI = "http://app1.moootooo.com:8001/api/getuserinfo.php?upid=%s"
 YOUXIA_IMEI_GPS = "http://app1.moootooo.com:8001/api/getlatlng_baidu.php?imei=%s"
-YOUXIA_IMEI_BASE_INFO = "http://app1.moootooo.com:8001/api/getdeviceall.php?imei=%s"
+YOUXIA_IMEI_DEVICE_INFO = "http://app1.moootooo.com:8001/api/getdeviceall.php?imei=%s"
 URLLIB2_TIMEOUT = 60
 
 
@@ -74,7 +75,15 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
             Raises:
                 IOError: An error occurred accessing the bigtable.Table object.
             """
-        return self.__youxia_read__(YOUXIA_IMEI_BASE_INFO % imei)
+        try:
+            content = self.__youxia_read__(YOUXIA_IMEI_DEVICE_INFO % imei)
+        except YouxiaConnectorException as e:
+            logger.error(u"[接口访问] - 获取设备信息失败 imei : %s , ext: %s" % (imei, e.message))
+            raise YouxiaConnectorException(u"获取设备信息失败 imei : %s , ext: %s" % (imei, e.message))
+
+        logger.debug(u"[接口访问] - 获取设备信息成功 imei : %s , content: %s" % (imei, content))
+
+        return content
 
     def get_location(self, imei):
         """获取地理位置信息.
@@ -95,7 +104,16 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
             Raises:
                 IOError: An error occurred accessing the bigtable.Table object.
             """
-        return self.__youxia_read__(YOUXIA_IMEI_GPS % imei)
+
+        try:
+            content = self.__youxia_read__(YOUXIA_IMEI_GPS % imei)
+        except YouxiaConnectorException as e:
+            logger.error(u"[接口访问] - 获取位置信息失败 imei : %s , ext: %s" % (imei, e.message))
+            raise YouxiaConnectorException(u"获取位置信息失败 imei : %s , ext: %s" % (imei, e.message))
+
+        logger.debug(u"[接口访问] - 获取位置信息成功 imei : %s , content: %s" % (imei, content))
+
+        return content
 
     def get_user_info(self, id):
         """通过id尝试获取imei号
@@ -121,7 +139,16 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
             Raises:
                 IOError: An error occurred accessing the bigtable.Table object.
             """
-        return self.__youxia_read__(YOUXIA_ID_IMEI % id)
+
+        try:
+            content = self.__youxia_read__(YOUXIA_ID_IMEI % id)
+        except YouxiaConnectorException as e:
+            logger.error(u"[接口访问] - 获取用户信息失败 id : %s , ext: %s" % (id, e.message))
+            raise YouxiaConnectorException("获取用户信息失败 id : %s , ext: %s" % (id, e.message))
+
+        logger.debug(u"[接口访问] - 获取用户信息成功 id : %s , content: %s" % (id, content))
+
+        return content
 
     def __youxia_read__(self, url):
         try:
@@ -129,8 +156,11 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
         except urllib2.URLError as e:
             raise YouxiaConnectorException(e.message)
 
-        if not resp or resp.code != 200:
-            raise YouxiaConnectorException("response code : " + resp.code)
+        if not resp:
+            raise YouxiaConnectorException(u"返回信息为空!")
+
+        if resp.code != 200:
+            raise YouxiaConnectorException(u"返回code != 200")
 
         return resp.read()
 

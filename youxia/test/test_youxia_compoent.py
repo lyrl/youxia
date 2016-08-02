@@ -13,19 +13,18 @@ import datetime
 class YouxiaTestCase(unittest.TestCase):
 
     def test_defrred_database(self):
-        model.deferred_db.init("sqlite3.db")
-        u = model.UserInfo()
-        u.create_time = datetime.datetime.today()
-        u.uid = 100000
-        u.save()
-
-        uu = model.UserInfo()
-        uu.create_time = datetime.datetime.today()
-        uu.save()
+        pass
 
     def test_create_table(self):
         model.deferred_db.init("sqlite3.db")
+
+        model.UserInfo.drop_table()
+        model.DeviceInfo.drop_table()
+        model.Location.drop_table()
+
         model.UserInfo.create_table()
+        model.DeviceInfo.create_table()
+        model.Location.create_table()
 
 
 if __name__ == '__main__':

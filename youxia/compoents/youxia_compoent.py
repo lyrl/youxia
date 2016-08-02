@@ -5,7 +5,10 @@ import datetime
 import json
 from abc import ABCMeta, abstractmethod
 import youxia.compoents.Model as model
+import util
 
+
+logger = util.get_logger("YouxiaDao")
 
 class YouxiaCompoent:
     __metaclass__ = ABCMeta
@@ -43,8 +46,6 @@ class YouxiaCompoent:
         pass
 
 
-
-
 class YouxiaCompoentImpl(YouxiaCompoent):
     def __init__(self, db_url):
         """
@@ -60,7 +61,7 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         try:
             model.deferred_db.connect()
         except Exception as e:
-            raise YouxiaException('数据库连接失败: ' + e.message)
+            raise YouxiaException(u'数据库连接失败: ' + e.message)
 
     def save_user_info(self, user_info, id):
         """
@@ -83,6 +84,9 @@ class YouxiaCompoentImpl(YouxiaCompoent):
               "IMEI": "356802030712896",
               "avator_url": "http://photo.moootooo.com/images/header.jpg"
             }
+
+        Returns:
+            model.UserInfo: 用户对象
         """
         user_info_json_dict = json.loads(user_info)
         user_info = model.UserInfo()
@@ -90,7 +94,16 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         user_info.uid = id
         self.__fill_json_to_user_info__(user_info, user_info_json_dict)
         user_info.create_time = datetime.datetime.now()
-        user_info.save()
+
+        try:
+            user_info.save()
+        except Exception as e:
+            logger.error(u"[数据库访问] - 保存用户信息失败 %s 用户id:%s" % (e.message, id))
+            raise YouxiaDaoException(u"[数据库访问] - 保存用户信息失败 %s 用户id:%s" % (e.message, id))
+
+        logger.debug(u"[数据库访问] - 保存用户信息成功 id:%s" % id)
+
+        return user_info
 
     def save_location(self, location, uid):
         """
@@ -99,18 +112,30 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         Args:
             location (str): 用户信息 json 形式
             uid (int): 用户id
+
+        Returns:
+            model.Location: 位置对象
         """
         user_info = self.get_user_by_id(uid)
         location_json_dict = json.loads(location)
 
         if not user_info:
-            raise YouxiaDaoException("用户id %s 不存在，无法保存位置信息!" % uid)
+            raise YouxiaDaoException(u"用户id %s 不存在，无法保存位置信息!" % uid)
 
         location = model.Location()
         self.__fill_json_to_location_info__(location, location_json_dict)
         location.user = user_info
         location.create_time = datetime.datetime.now()
-        location.save()
+
+        try:
+            location.save()
+        except Exception as e:
+            logger.error(u"[数据库访问] - 保存位置信息失败 %s 用户id:%s" % (e.message, uid))
+            raise YouxiaDaoException(u"[数据库访问] - 保存位置信息失败 %s 用户id:%s" % (e.message, uid))
+
+        logger.debug(u"[数据库访问] - 保存位置信息成功 用户id:%s" % uid)
+
+        return location
 
     def save_device_info(self, device_info, uid):
         """
@@ -119,18 +144,31 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         Args:
             device_info (str): 设备信息 json 形式
             uid (int): 用户id
+
+        Returns:
+            model.DeviceInfo: 设备信息对象
         """
 
         user_info = self.get_user_by_id(uid)
         device_info_json_dict = json.loads(device_info)
 
         if not user_info:
-            raise YouxiaDaoException("用户id %s 不存在，无法保存位置信息!" % uid)
+            raise YouxiaDaoException(u"用户id %s 不存在，无法保存位置信息!" % uid)
 
         device_info = model.DeviceInfo()
         self.__fill_json_to_device_info__(device_info, device_info_json_dict)
         device_info.create_time = datetime.datetime.now()
-        device_info.save()
+        device_info.user = user_info
+
+        try:
+            device_info.save()
+        except Exception as e:
+            logger.error(u"[数据库访问] - 保存设备信息失败 %s 用户id:%s" % (e.message, uid))
+            raise YouxiaDaoException("[数据库访问] - 保存设备信息失败 %s 用户id:%s" % (e.message, uid))
+
+        logger.debug(u"[数据库访问] - 保存设备信息成功 用户id:%s" % uid)
+
+        return device_info
 
     def update_location(self, location, uid):
         """

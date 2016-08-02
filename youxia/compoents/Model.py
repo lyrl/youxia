@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 # Created on 2016-07-26 11:04:34
 import peewee
-deferred_db = peewee.SqliteDatabase(None)
+deferred_db = peewee.SqliteDatabase(None, threadlocals=False)
 
 
 class BaseModel(peewee.Model):
@@ -26,7 +26,7 @@ class UserInfo(BaseModel):
 
 
 class Location(BaseModel):
-    user = peewee.ForeignKeyField(UserInfo)
+    user = peewee.ForeignKeyField(UserInfo, to_field='uid')
     longitude = peewee.DoubleField()
     latitude = peewee.DoubleField()
     speed = peewee.DoubleField()
@@ -38,7 +38,7 @@ class Location(BaseModel):
 
 
 class DeviceInfo(BaseModel):
-    user = peewee.ForeignKeyField(UserInfo)
+    user = peewee.ForeignKeyField(UserInfo, to_field='uid')
     gsm = peewee.CharField()
     gps = peewee.CharField()
     gps_ok = peewee.CharField()

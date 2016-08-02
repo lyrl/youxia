@@ -6,9 +6,9 @@ import youxia.compoents.youxia_crawler_compoent as youxia
 
 
 class PrimesTestCase(unittest.TestCase):
-    def test_is_five_prime(self):
-        self.assertRaises(youxia.NoBaiduAppKeyError, lambda: youxia.YouxiaCratwler())
-
+    def test_run(self):
+        ycrawler = youxia.YouxiaCrawler("sqlite3.db")
+        ycrawler.run()
 
 if __name__ == '__main__':
     unittest.main()
