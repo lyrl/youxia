@@ -128,7 +128,11 @@ class YouxiaCompoentImpl(YouxiaCompoent):
             model.Location: 位置对象
         """
         user_info = self.get_user_by_id(uid)
-        location_json_dict = json.loads(location)
+
+        try:
+            location_json_dict = json.loads(location)
+        except:
+            raise YouxiaDaoException(u"位置信息解析失败 内容：%s!" % location)
 
         if not user_info:
             raise YouxiaDaoException(u"用户id %s 不存在，无法保存位置信息!" % uid)
