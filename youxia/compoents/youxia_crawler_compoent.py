@@ -57,14 +57,21 @@ class YouxiaCrawler(object):
         self.redis.remove_from_active_list(uid)
 
     def fetch_and_save_device_info_to_db(self, uid, user_info):
-        device_info_json = self.connector.get_device_info(user_info.imei)
+        try:
+            device_info_json = self.connector.get_device_info(user_info.imei)
+        except Exception:
+            return
+
         if self.repo.get_device_info_by_user_id(uid):
             self.repo.save_device_info(device_info_json, uid)
         else:
             self.repo.update_device_info(device_info_json, uid)
 
     def fetch_and_save_location_to_db(self, uid, user_info):
-        location_info_json = self.connector.get_location(user_info.imei)
+        try:
+            location_info_json = self.connector.get_location(user_info.imei)
+        except Exception:
+            return
 
         if self.repo.count_location_by_user_id(user_info.uid) > 0:
             self.repo.update_location(location_info_json, uid)
@@ -72,9 +79,17 @@ class YouxiaCrawler(object):
             self.repo.save_location(location_info_json, uid)
 
     def fetch_and_save_user_info_to_db(self, uid):
-        user_info_json = self.connector.get_user_info(uid)
+        try:
+            user_info_json = self.connector.get_user_info(uid)
+        except Exception:
+            return
+
         user_info_json_dict = json.loads(user_info_json)
-        user_info_json_dict['IMEI']
+        try:
+            user_info_json_dict['IMEI']
+        except Exception:
+            self.redis.remove_from_active_list(uid)
+            return
 
         user_info = self.repo.get_user_by_id(uid)
 
