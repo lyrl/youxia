@@ -242,12 +242,17 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         Returns:
             int: 用户id
         """
-        user = model.UserInfo.select().order_by(model.UserInfo.uid.desc()).limit(1).get()
+        try:
+            user = model.UserInfo.select().order_by(model.UserInfo.uid.desc()).limit(1).get()
+        except Exception as e:
+            logger.info(u"[数据库访问] - 用户表为空 %s" % e)
+            return 0
 
         if user:
             return user
         else:
             return 0
+
     def count_location_by_user_id(self, uid):
         user = self.get_user_by_id(uid)
         return model.Location.select().where(model.Location.user == user).count()
