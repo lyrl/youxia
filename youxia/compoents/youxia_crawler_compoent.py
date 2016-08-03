@@ -11,7 +11,7 @@ import util
 logger = util.get_logger("YouxiaCrawler")
 
 GENERATE_SIZE = 10000 # 每次自动生成的id数量
-IDS_INIT_START = 1000000000
+IDS_INIT_START = 1000271859
 
 
 class YouxiaCrawler(object):
