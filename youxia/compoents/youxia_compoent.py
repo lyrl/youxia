@@ -221,7 +221,12 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         Returns:
             model.UserInfo: 用户对象
         """
-        return model.UserInfo.get(uid=uid)
+        try:
+            user_info = model.UserInfo.get(uid=uid)
+        except Exception as e:
+            logger.info(u"[数据库访问] - 用户不存在 id: %s" % uid)
+            user_info = None
+        return user_info
 
     def get_device_info_by_user_id(self, uid):
         """
