@@ -63,9 +63,9 @@ class YouxiaCrawler(object):
             return
 
         if self.repo.get_device_info_by_user_id(uid):
-            self.repo.save_device_info(device_info_json, uid)
-        else:
             self.repo.update_device_info(device_info_json, uid)
+        else:
+            self.repo.save_device_info(device_info_json, uid)
 
     def fetch_and_save_location_to_db(self, uid, user_info):
         try:
