@@ -59,6 +59,7 @@ class YouxiaCrawler(object):
     def fetch_and_save_device_info_to_db(self, uid, user_info):
         try:
             device_info_json = self.connector.get_device_info(user_info.imei)
+            json.loads(device_info_json)
         except Exception:
             return
 
@@ -70,6 +71,7 @@ class YouxiaCrawler(object):
     def fetch_and_save_location_to_db(self, uid, user_info):
         try:
             location_info_json = self.connector.get_location(user_info.imei)
+            json.loads(location_info_json)
         except Exception:
             return
 
@@ -81,6 +83,7 @@ class YouxiaCrawler(object):
     def fetch_and_save_user_info_to_db(self, uid):
         try:
             user_info_json = self.connector.get_user_info(uid)
+            json.loads(user_info_json)
         except Exception:
             return
 
