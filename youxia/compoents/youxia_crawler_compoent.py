@@ -15,16 +15,17 @@ IDS_INIT_START = 1000000000
 
 
 class YouxiaCrawler(object):
-    def __init__(self, sqlite_file, redis_host='localhost'):
+    def __init__(self, sqlite_file, redis_host='localhost', create_table=False):
         self.sqlite_file = sqlite_file
         self.connector = connector_compoent.YouxiaConnectorCompoentImpl()
-        self.repo = youxia_repository.YouxiaCompoentImpl(self.sqlite_file)
+        self.repo = youxia_repository.YouxiaCompoentImpl(self.sqlite_file, create_table)
         self.redis = yxredis.YouxiaRedisImpl(redis_host)
 
     def run(self):
         logger.debug("[爬虫进程] - 初始化成功!")
         while True:
 
+            # active & queue 列表中数据为空
             if self.redis.queue_size() == 0 and self.redis.active_size() == 0:
                 top_id = self.repo.get_top_user_id()
 
@@ -33,6 +34,7 @@ class YouxiaCrawler(object):
                     logger.debug("[爬虫进程] - 程序第一次启动将自动从%s开始生成id!" % IDS_INIT_START)
                 self.generate_ids_put_in_redis(top_id, GENERATE_SIZE)
 
+            # 将active列表中的数据移到queue中重新进行抓取
             if self.redis.active_size() > 0:
                 logger.debug("[爬虫进程] - 检测到上次程序异常退出，将优先执行未处理的id!" )
                 self.redis.move_active_to_queue()
@@ -40,7 +42,6 @@ class YouxiaCrawler(object):
             while self.redis.queue_size() != 0:
                 id = self.redis.fetch_from_queue()
                 self.redis.put_in_active_list(id)
-
                 self.fetch_and_save_to_db(id)
 
     def fetch_and_save_to_db(self, uid):

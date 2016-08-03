@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 # Created on 2016-07-26 11:04:34
 import peewee
-deferred_db = peewee.SqliteDatabase(None, threadlocals=False)
+deferred_db = peewee.SqliteDatabase(None)
 
 
 class BaseModel(peewee.Model):

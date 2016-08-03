@@ -52,13 +52,14 @@ class YouxiaCompoent:
 
 
 class YouxiaCompoentImpl(YouxiaCompoent):
-    def __init__(self, db_url):
+    def __init__(self, db_url, create_table=False):
         """
         Youxia 数据库访问层
         暂支持sqlite3
 
         Args:
             db_url (str): sqlite3数据库文件路径 eg: /root/sqlite3.db
+            create_table (bool): 是否需要自动创建表
         """
 
         model.deferred_db.init(db_url)
@@ -67,6 +68,11 @@ class YouxiaCompoentImpl(YouxiaCompoent):
             model.deferred_db.connect()
         except Exception as e:
             raise YouxiaException(u'数据库连接失败: ' + e.message)
+
+        if create_table:
+            model.UserInfo.create_table()
+            model.Location.create_table()
+            model.DeviceInfo.create_table()
 
     def save_user_info(self, user_info, id):
         """
