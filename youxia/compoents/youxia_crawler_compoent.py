@@ -78,9 +78,9 @@ class YouxiaCrawler(object):
         user_info = self.repo.get_user_by_id(uid)
 
         if user_info:
-            self.repo.update_user_info(user_info_json_dict, uid)
+            self.repo.update_user_info(user_info_json, uid)
         else:
-            user_info = self.repo.update_user_info(user_info_json_dict, id)
+            user_info = self.repo.update_user_info(user_info_json, uid)
         return user_info
 
     def generate_ids_put_in_redis(self, top_id, count=10000):
