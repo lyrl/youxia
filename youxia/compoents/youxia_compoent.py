@@ -259,7 +259,7 @@ class YouxiaCompoentImpl(YouxiaCompoent):
             return 0
 
         if user:
-            return user
+            return user.uid
         else:
             return 0
 
