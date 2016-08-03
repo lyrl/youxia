@@ -298,8 +298,8 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         device_info.gps_status = device_info_json_dict['gps_status']
         device_info.haiba = 0 if device_info_json_dict['haiba'] != '' else device_info_json_dict['haiba']
         device_info.sensity = device_info_json_dict['sensity']
-        device_info.longitude = device_info_json_dict['lat']
-        device_info.latitude = device_info_json_dict['long']
+        device_info.longitude = float(device_info_json_dict['lat'])
+        device_info.latitude = float(device_info_json_dict['long'])
         device_info.power = device_info_json_dict['power']
         device_info.bufang = device_info_json_dict['bufang']
         device_info.status2 = device_info_json_dict['status2']
