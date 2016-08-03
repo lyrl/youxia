@@ -296,7 +296,7 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         device_info.check_mswitch = device_info_json_dict['check_mswitch']
         device_info.device_status = device_info_json_dict['device_status']
         device_info.gps_status = device_info_json_dict['gps_status']
-        device_info.haiba = 0
+        device_info.haiba = 0 if not '' else device_info_json_dict['haiba']
         device_info.sensity = device_info_json_dict['sensity']
         device_info.longitude = float(device_info_json_dict['lat'])
         device_info.latitude = float(device_info_json_dict['long'])
