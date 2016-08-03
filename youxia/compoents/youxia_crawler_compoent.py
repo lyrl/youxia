@@ -65,6 +65,7 @@ class YouxiaCrawler(object):
 
     def fetch_and_save_location_to_db(self, uid, user_info):
         location_info_json = self.connector.get_location(user_info.imei)
+
         if self.repo.count_location_by_user_id(user_info.uid) > 0:
             self.repo.update_location(location_info_json, uid)
         else:

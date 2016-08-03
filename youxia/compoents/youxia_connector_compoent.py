@@ -81,7 +81,10 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
             logger.error(u"[接口访问] - 获取设备信息失败 imei : %s , ext: %s" % (imei, e.message))
             raise YouxiaConnectorException(u"获取设备信息失败 imei : %s , ext: %s" % (imei, e.message))
 
-        logger.debug(u"[接口访问] - 获取设备信息成功 imei : %s , content: %s" % (imei, content))
+        if content:
+            logger.debug(u"[接口访问] - 获取设备信息成功 imei : %s , content: %s" % (imei, content))
+        else:
+            raise YouxiaConnectorException(u"获取设备信息失败 imei : %s 返回内容为空" % (imei))
 
         return content
 
@@ -111,7 +114,10 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
             logger.error(u"[接口访问] - 获取位置信息失败 imei : %s , ext: %s" % (imei, e.message))
             raise YouxiaConnectorException(u"获取位置信息失败 imei : %s , ext: %s" % (imei, e.message))
 
-        logger.debug(u"[接口访问] - 获取位置信息成功 imei : %s , content: %s" % (imei, content))
+        if content:
+            logger.debug(u"[接口访问] - 获取位置信息成功 imei : %s , content: %s" % (imei, content))
+        else:
+            raise YouxiaConnectorException(u"获取位置信息失败 imei : %s 返回内容为空" % (imei))
 
         return content
 
@@ -146,7 +152,10 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
             logger.error(u"[接口访问] - 获取用户信息失败 id : %s , ext: %s" % (id, e.message))
             raise YouxiaConnectorException("获取用户信息失败 id : %s , ext: %s" % (id, e.message))
 
-        logger.debug(u"[接口访问] - 获取用户信息成功 id : %s , content: %s" % (id, content))
+        if content:
+            logger.debug(u"[接口访问] - 获取用户信息成功 id : %s , content: %s" % (id, content))
+        else:
+            raise YouxiaConnectorException(u"获取用户信息失败 id : %s 返回内容为空" % (id))
 
         return content
 
