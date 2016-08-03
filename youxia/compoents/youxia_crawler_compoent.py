@@ -45,46 +45,43 @@ class YouxiaCrawler(object):
                 self.fetch_and_save_to_db(id)
 
     def fetch_and_save_to_db(self, uid):
-        try:
-            step = 0
-            user_info_json = self.connector.get_user_info(uid)
+        #用户信息
+        user_info = self.fetch_and_save_user_info_to_db(uid)
 
-            user_info_json_dict = json.loads(user_info_json)
-            user_info_json_dict['IMEI']
+        #位置信息
+        self.fetch_and_save_location_to_db(uid, user_info)
 
-            user_info = self.repo.get_user_by_id(uid)
+        #设备信息
+        self.fetch_and_save_device_info_to_db(uid, user_info)
 
-            if user_info:
-                self.repo.update_user_info(user_info_json_dict, uid)
-            else:
-                user_info = self.repo.update_user_info(user_info_json_dict, id)
-            step += 1
+        self.redis.remove_from_active_list(uid)
 
-            #位置信息
-            location_info_json = self.connector.get_location(user_info.imei)
+    def fetch_and_save_device_info_to_db(self, uid, user_info):
+        device_info_json = self.connector.get_device_info(user_info.imei)
+        if self.repo.get_device_info_by_user_id(uid):
+            self.repo.update_device_info(device_info_json, uid)
+        else:
+            self.repo.save_device_info(device_info_json, uid)
 
-            if self.repo.count_location_by_user_id(user_info.uid) > 0:
-                self.repo.update_location(location_info_json, uid)
-            else:
-                self.repo.save_location(location_info_json, uid)
-            step += 1
+    def fetch_and_save_location_to_db(self, uid, user_info):
+        location_info_json = self.connector.get_location(user_info.imei)
+        if self.repo.count_location_by_user_id(user_info.uid) > 0:
+            self.repo.update_location(location_info_json, uid)
+        else:
+            self.repo.save_location(location_info_json, uid)
 
-            #设备信息
-            device_info_json = self.connector.get_device_info(user_info.imei)
+    def fetch_and_save_user_info_to_db(self, uid):
+        user_info_json = self.connector.get_user_info(uid)
+        user_info_json_dict = json.loads(user_info_json)
+        user_info_json_dict['IMEI']
 
-            if self.repo.get_device_info_by_user_id(uid):
-                self.repo.update_device_info(device_info_json, uid)
-            else:
-                self.repo.save_device_info(device_info_json, uid)
+        user_info = self.repo.get_user_by_id(uid)
 
-            step += 1
-            self.redis.remove_from_active_list(uid)
-        except KeyError as k:
-                logger.error("[爬虫进程] - 无效的用户id %s " % uid)
-                self.redis.remove_from_active_list(uid)
-                return
-        except Exception as e:
-            return
+        if user_info:
+            self.repo.update_user_info(user_info_json_dict, uid)
+        else:
+            user_info = self.repo.update_user_info(user_info_json_dict, id)
+        return user_info
 
     def generate_ids_put_in_redis(self, top_id, count=10000):
             for i in xrange(top_id+1, top_id+1+count):
