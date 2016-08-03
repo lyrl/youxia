@@ -59,9 +59,9 @@ class YouxiaCrawler(object):
     def fetch_and_save_device_info_to_db(self, uid, user_info):
         device_info_json = self.connector.get_device_info(user_info.imei)
         if self.repo.get_device_info_by_user_id(uid):
-            self.repo.update_device_info(device_info_json, uid)
-        else:
             self.repo.save_device_info(device_info_json, uid)
+        else:
+            self.repo.update_device_info(device_info_json, uid)
 
     def fetch_and_save_location_to_db(self, uid, user_info):
         location_info_json = self.connector.get_location(user_info.imei)
@@ -80,7 +80,7 @@ class YouxiaCrawler(object):
         if user_info:
             self.repo.update_user_info(user_info_json, uid)
         else:
-            user_info = self.repo.update_user_info(user_info_json, uid)
+            user_info = self.repo.save_user_info(user_info_json, uid)
         return user_info
 
     def generate_ids_put_in_redis(self, top_id, count=10000):

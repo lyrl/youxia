@@ -237,8 +237,12 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         Returns:
             model.DeviceInfo: 位置信息对象
         """
+        try:
+            device_info = model.DeviceInfo.get(user=uid)
+        except:
+            device_info = None
 
-        return model.DeviceInfo.get(user=uid)
+        return device_info
 
     def get_top_user_id(self):
         """
