@@ -25,6 +25,7 @@ cd youxia
 YouxiaCrawler 需要传入两个参数
 - sqlite3数据库文件路径
 - redis ip
+- create_table 是否自动创建表 默认False
 
 ```python
 #!/usr/bin/env python
