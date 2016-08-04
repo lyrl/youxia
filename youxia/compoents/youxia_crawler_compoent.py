@@ -64,9 +64,11 @@ class YouxiaCrawler(object):
             for i in recent_active_user_list:
                 self.redis.put_in_recently_list(i.user.uid)
 
+        logger.debug("[爬虫进程] - 将上次抓取未完成的记录移动到recently %s ")
         if self.redis.recently_active_size():
             self.redis.move_recently_active_to_recently_list()
 
+        logger.debug("[爬虫进程] - 开始更新 %s ")
         while self.redis.recently_size():
             id = self.redis.fetch_from_recently_list()
             self.redis.put_in_recently_active_list(id)
