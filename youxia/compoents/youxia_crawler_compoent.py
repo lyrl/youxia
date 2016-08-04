@@ -57,19 +57,20 @@ class YouxiaCrawler(object):
 
     def rencently_active_user_location_updater(self):
         # 最近活动的数据
-        recent_active_user_list = self.repo.get_recent_active_user()
-        logger.debug("[爬虫进程] - 近一天活动的用户 %s " % (recent_active_user_list.count()))
+        if self.redis.recently_size() == 0 and self.redis.recently_active_size() == 0:
+            recent_active_user_list = self.repo.get_recent_active_user()
+            logger.debug("[爬虫进程] - 近一天活动的用户 %s " % (recent_active_user_list.count()))
 
-        if recent_active_user_list.count():
-            for i in recent_active_user_list:
-                self.redis.put_in_recently_list(i.user.uid)
+            if recent_active_user_list.count():
+                for i in recent_active_user_list:
+                    self.redis.put_in_recently_list(i.user.uid)
 
-        logger.debug("[爬虫进程] - 将上次抓取未完成的记录移动到recently %s ")
         if self.redis.recently_active_size():
+            logger.debug("[爬虫进程] - 将上次抓取未完成的记录 %s 移动到recently" % self.redis.recently_active_size())
             self.redis.move_recently_active_to_recently_list()
 
-        logger.debug("[爬虫进程] - 开始更新 %s ")
         while self.redis.recently_size():
+            logger.debug("[爬虫进程] - 开始更新 %s 条 !" % self.redis.recently_size())
             id = self.redis.fetch_from_recently_list()
             self.redis.put_in_recently_active_list(id)
 
