@@ -289,6 +289,28 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         yesterday = today - datetime.timedelta(1)
         return model.Location.select().where(model.Location.time.between(yesterday, today)).group_by(model.Location.user)
 
+    def get_last_location(self, uid):
+        """
+        获得用户最后一次的位置信息
+
+        Args:
+            uid (int): 用户唯一标识
+        Returns:
+            model.Location: 位置信息
+        """
+        user = self.get_user_by_id(uid)
+
+        if not user:
+            return None
+
+        try:
+            last_location = model.Location.select().where(model.Location.user == user).order_by(model.Location.time.desc()).limit(1).get()
+        except Exception:
+            last_location = None
+            logger.info(u"[数据库访问] - 用户 %s 没有任何位置记录!" % user.uid)
+
+        return last_location
+
 
     def __fill_json_to_user_info__(self, user_info, user_info_json_dict):
         date_format = '%Y-%M-%d'
@@ -329,6 +351,8 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         device_info.create_time = datetime.datetime.now()
         device_info.update_time = datetime.datetime.now()
         device_info.last_fetch_time = datetime.datetime.now()
+
+
 
 
 class YouxiaException(Exception):

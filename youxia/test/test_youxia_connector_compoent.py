@@ -31,5 +31,7 @@ class YouxiaConnectorTestCase(unittest.TestCase):
     def test_docstr(self):
         u = yc.UserInfo()
 
+
+
 if __name__ == '__main__':
     unittest.main()

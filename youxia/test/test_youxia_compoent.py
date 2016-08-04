@@ -43,6 +43,10 @@ class YouxiaTestCase(unittest.TestCase):
         b = a.get_recent_active_user()
 
 
+    def test_get_last_location(self):
+        a = yxc.YouxiaCompoentImpl("sqlite3.db")
+
+        print a.get_last_location(1000271859)
 
 
 

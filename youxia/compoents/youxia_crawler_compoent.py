@@ -19,6 +19,9 @@ GENERATE_SIZE = 10000 # 每次自动生成的id数量
 IDS_INIT_START = 1000000000
 
 
+
+
+
 class YouxiaCrawler(object):
     def __init__(self, sqlite_file, redis_host='localhost', create_table=False):
         self.sqlite_file = sqlite_file
@@ -124,11 +127,17 @@ class YouxiaCrawler(object):
     def fetch_and_save_location_to_db(self, uid, user_info, caller='updater'):
         try:
             location_info_json = self.connector.get_location(user_info.imei)
-            json.loads(location_info_json)
+            location_info_json_dict_object = json.loads(location_info_json)
         except Exception:
             return
 
         if self.repo.count_location_by_user_id(user_info.uid) > 0:
+            last_location = self.repo.get_last_location(uid)
+
+            if last_location and self.location_is_same(last_location, location_info_json_dict_object):
+                self.redis.remove_from_recently_active_list(uid)
+                return
+
             location = self.repo.update_location(location_info_json, uid)
         else:
             location = self.repo.save_location(location_info_json, uid)
@@ -170,6 +179,21 @@ class YouxiaCrawler(object):
     def generate_ids_put_in_redis(self, top_id, count=10000):
             for i in xrange(top_id+1, top_id+1+count):
                 self.redis.put_in_queue(i)
+
+    def location_is_same(self, last_location, location_info_json_dict_object):
+        """
+        判断数据库中最后一次位置信息 是否跟最新抓取的位置信息一样
+        一样的话就不再保存
+        """
+        date_time_format = '%Y-%m-%d %H:%M:%S'
+
+        speed_n = location_info_json_dict_object['speed']
+        time_n = datetime.datetime.strptime(location_info_json_dict_object['time'], date_time_format)
+
+        if last_location.time == time_n and last_location.speed == speed_n:
+            return True
+
+        return False
 
 
 class YouxiaCrawlerException(Exception):
