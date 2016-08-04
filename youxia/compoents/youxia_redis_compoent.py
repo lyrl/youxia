@@ -224,10 +224,10 @@ class YouxiaRedisImpl(YouxiaRedis):
     def put_in_recently_5_min_list(self, uid):
         self.redis.lpush(RECENTLY_5_MIN_REDIS_KEY, uid)
 
-    def fetch_from_recently_5_min_list(self, uid):
+    def fetch_from_recently_5_min_list(self):
         return self.redis.rpop(RECENTLY_5_MIN_REDIS_KEY)
 
-    def recently_5_min_size(self, uid):
+    def recently_5_min_size(self):
         return self.redis.llen(RECENTLY_5_MIN_REDIS_KEY)
 
 
