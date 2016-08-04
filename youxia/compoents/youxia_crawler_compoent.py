@@ -48,6 +48,8 @@ class YouxiaCrawler(object):
         if self.redis.active_size() > 0:
             logger.debug("[爬虫进程] - 检测到上次程序异常退出，将优先执行未处理的id!")
             self.redis.move_active_to_queue()
+
+        logger.debug("[爬虫进程] - 正在进行抓取!")
         while self.redis.queue_size() != 0:
             id = self.redis.fetch_from_queue()
             self.redis.put_in_active_list(id)
