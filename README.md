@@ -28,6 +28,9 @@ YouxiaCrawler 需要传入两个参数
 - redis ip
 - create_table 是否自动创建表 默认False
 
+
+按下面模板创建一个main.py
+
 ```python
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
@@ -39,10 +42,26 @@ if path not in sys.path:
     sys.path.append(path)
 import compoents.youxia_crawler_compoent as yxc
 
-if __name__ == '__main__':	  #sqlite3	  #redis ip
-    yxcrawler = yxc.YouxiaCrawler("youxia.db", localhost, create_table=False)
-    yxcrawler.run()
+if __name__ == '__main__':
+    run_as = sys.argv[1] if sys.argv[1] else 'crawler'
+    yxcrawler = yxc.YouxiaCrawler("youxia.db", create_table=False)
+    yxcrawler.run(run_as)
+```
 
+**运行爬虫实例**
+
+主要负责抓取新用户
+
+```bash
+python youxia/main.py crawler
+```
+
+**运行位置更新实例**
+
+负责更新现有用户的位置信息
+
+```bash
+python youxia/main.py updater
 ```
 
 
