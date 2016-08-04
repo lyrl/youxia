@@ -198,6 +198,14 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         self.__fill_json_to_location_info__(location, location_json_dict)
         location.last_fetch_time = datetime.datetime.now()
 
+        try:
+            location.save()
+        except Exception as e:
+            logger.error(u"[数据库访问] - 保存位置信息失败 %s 用户id:%s" % (e.message, uid))
+            raise YouxiaDaoException(u"[数据库访问] - 保存位置信息失败 %s 用户id:%s" % (e.message, uid))
+
+        logger.debug(u"[数据库访问] - 保存位置信息成功 用户id:%s" % uid)
+
     def update_device_info(self, device_info, uid):
         device_info_json_dict = json.loads(device_info)
         device_info = self.get_device_info_by_user_id(uid)
