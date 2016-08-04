@@ -60,7 +60,7 @@ class YouxiaCrawler(object):
             self.redis.put_in_active_list(id)
             self.fetch_and_save_to_db(id)
 
-            self.redis.register('crawler:' + tm, 5)
+            self.redis.register('crawler:' + str(tm), 5)
 
     def rencently_active_user_location_updater(self):
 
@@ -87,7 +87,7 @@ class YouxiaCrawler(object):
             user = self.repo.get_user_by_id(id)
 
             self.fetch_and_save_location_to_db(id, user)
-            self.redis.register('updater:'+tm, 5)
+            self.redis.register('updater:'+str(tm), 5)
 
     def fetch_and_save_to_db(self, uid):
         #用户信息
