@@ -2,6 +2,9 @@
 # -*- encoding: utf-8 -*-
 # Created on 2016-07-26 11:04:34
 import json
+
+import time
+
 import youxia_connector_compoent as connector_compoent
 import youxia_compoent as youxia_repository
 import youxia_redis_compoent as yxredis
@@ -23,7 +26,6 @@ class YouxiaCrawler(object):
 
     def run(self, run_as):
         while True:
-
             if run_as == 'crawler':
                 logger.debug("[爬虫进程] - 初始化成功!")
                 self.youxia_new_user_crawler()
@@ -35,6 +37,9 @@ class YouxiaCrawler(object):
                 sys.exit()
 
     def youxia_new_user_crawler(self):
+
+        tm = time.time()
+
         # active & queue 列表中数据为空
         if self.redis.queue_size() == 0 and self.redis.active_size() == 0:
             top_id = self.repo.get_top_user_id()
@@ -55,7 +60,12 @@ class YouxiaCrawler(object):
             self.redis.put_in_active_list(id)
             self.fetch_and_save_to_db(id)
 
+            self.redis.register('crawler:' + tm, 5)
+
     def rencently_active_user_location_updater(self):
+
+        tm = time.time()
+
         # 最近活动的数据
         if self.redis.recently_size() == 0 and self.redis.recently_active_size() == 0:
             recent_active_user_list = self.repo.get_recent_active_user()
@@ -77,6 +87,7 @@ class YouxiaCrawler(object):
             user = self.repo.get_user_by_id(id)
 
             self.fetch_and_save_location_to_db(id, user)
+            self.redis.register('updater:'+tm, 5)
 
     def fetch_and_save_to_db(self, uid):
         #用户信息

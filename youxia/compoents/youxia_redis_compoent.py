@@ -213,6 +213,10 @@ class YouxiaRedisImpl(YouxiaRedis):
         while self.recently_active_size():
             self.put_in_recently_list(self.fetch_from_recently_active_list())
 
+    def register(self, key, expire):
+        self.redis.set(key, key)
+        self.redis.expire(key, expire)
+
 
 class YouxiaRedisException(Exception):
     def __init__(self, msg):
