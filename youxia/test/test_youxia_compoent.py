@@ -46,7 +46,13 @@ class YouxiaTestCase(unittest.TestCase):
     def test_get_last_location(self):
         a = yxc.YouxiaCompoentImpl("sqlite3.db")
 
-        print a.get_last_location(1000271859)
+        dbt = a.get_last_location(1000271859).time
+        print dbt
+        past = datetime.datetime.strptime("2016-08-02 18:54:43", '%Y-%m-%d %H:%M:%S')
+
+
+
+        print dbt == past
 
 
 

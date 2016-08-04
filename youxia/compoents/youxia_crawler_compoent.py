@@ -132,11 +132,11 @@ class YouxiaCrawler(object):
             return
 
         if self.repo.count_location_by_user_id(user_info.uid) > 0:
-            last_location = self.repo.get_last_location(uid)
-
-            if last_location and self.location_is_same(last_location, location_info_json_dict_object):
-                self.redis.remove_from_recently_active_list(uid)
-                return
+            #last_location = self.repo.get_last_location(uid)
+            # 数据库控制还是不可行
+            #if last_location and self.location_is_same(last_location, location_info_json_dict_object):
+            #   self.redis.remove_from_recently_active_list(uid)
+            #    return
 
             location = self.repo.update_location(location_info_json, uid)
         else:
