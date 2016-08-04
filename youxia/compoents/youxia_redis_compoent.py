@@ -11,6 +11,7 @@ QUEUE_REDIS_KEY = 'queue' # 抓取队列中等待抓取的
 QUEUE_ACTIVE_REDIS_KEY = 'queue_active' # 抓取激活中，正在抓取的
 RECENTLY_REDIS_KEY = 'recently' # 最近活动的用户列表
 RECENTLY_ACTIVE_REDIS_KEY = 'recently_active' # 正在更新中的最近活动的用户
+RECENTLY_5_MIN_REDIS_KEY = 'recently_5_min' # 5分钟内有活动的
 
 
 class YouxiaRedis:
@@ -134,14 +135,17 @@ class YouxiaRedisImpl(YouxiaRedis):
         """
         self.redis.lrem(QUEUE_ACTIVE_REDIS_KEY, 1, uid)
 
-    def put_in_recently_list(self, uid):
+    def put_in_recently_list(self, uid, high_priority=False):
         """
         用用户uid放到最近活动的列表中
 
         Args:
             uid (int): 用户id
         """
-        self.redis.lpush(RECENTLY_REDIS_KEY, uid)
+        if high_priority:
+            self.redis.rpush(RECENTLY_REDIS_KEY, uid)
+        else:
+            self.redis.lpush(RECENTLY_REDIS_KEY, uid)
 
     def fetch_from_recently_list(self):
         """
@@ -216,6 +220,15 @@ class YouxiaRedisImpl(YouxiaRedis):
     def register(self, key, expire):
         self.redis.set(key, key)
         self.redis.expire(key, expire)
+
+    def put_in_recently_5_min_list(self, uid):
+        self.redis.lpush(RECENTLY_5_MIN_REDIS_KEY, uid)
+
+    def fetch_from_recently_5_min_list(self, uid):
+        return self.redis.rpop(RECENTLY_5_MIN_REDIS_KEY)
+
+    def recently_5_min_size(self, uid):
+        return self.redis.llen(RECENTLY_5_MIN_REDIS_KEY)
 
 
 class YouxiaRedisException(Exception):

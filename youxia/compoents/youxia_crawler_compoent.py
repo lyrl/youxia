@@ -5,6 +5,8 @@ import json
 
 import time
 
+import datetime
+
 import youxia_connector_compoent as connector_compoent
 import youxia_compoent as youxia_repository
 import youxia_redis_compoent as yxredis
@@ -79,6 +81,12 @@ class YouxiaCrawler(object):
             logger.debug("[爬虫进程] - 将上次抓取未完成的记录 %s 移动到recently" % self.redis.recently_active_size())
             self.redis.move_recently_active_to_recently_list()
 
+        if self.redis.recently_5_min_size():
+            logger.debug("[爬虫进程] - 最近5分钟更新用户 %s 条，将优先抓取 " % (self.redis.recently_5_min_size()))
+            while self.redis.recently_5_min_size():
+                id = self.redis.fetch_from_recently_5_min_list()
+                self.redis.put_in_recently_list(id, True)
+
         logger.debug("[爬虫进程] - 开始更新 %s 条 !" % self.redis.recently_size())
         while self.redis.recently_size():
             id = self.redis.fetch_from_recently_list()
@@ -121,11 +129,20 @@ class YouxiaCrawler(object):
             return
 
         if self.repo.count_location_by_user_id(user_info.uid) > 0:
-            self.repo.update_location(location_info_json, uid)
+            location = self.repo.update_location(location_info_json, uid)
         else:
-            self.repo.save_location(location_info_json, uid)
+            location = self.repo.save_location(location_info_json, uid)
 
         if caller == 'updater':
+            if location.speed > 0:
+                last_time = location.time
+                now = datetime.datetime.now()
+                min5 = datetime.timedelta(minutes=5)
+                min5_ago = now - min5
+
+                if min5_ago <= last_time <= now:
+                    self.redis.put_in_recently_5_min_list(location.user.uid)
+
             self.redis.remove_from_recently_active_list(uid)
 
     def fetch_and_save_user_info_to_db(self, uid):

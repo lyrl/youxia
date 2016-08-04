@@ -206,6 +206,8 @@ class YouxiaCompoentImpl(YouxiaCompoent):
 
         logger.debug(u"[数据库访问] - 保存位置信息成功 用户id:%s" % uid)
 
+        return location
+
     def update_device_info(self, device_info, uid):
         device_info_json_dict = json.loads(device_info)
         device_info = self.get_device_info_by_user_id(uid)
