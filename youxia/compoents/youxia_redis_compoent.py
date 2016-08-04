@@ -7,8 +7,10 @@ import redis
 
 
 logger = util.get_logger("YouxiaRedis")
-QUEUE_REDIS_KEY = 'queue' # 队列中等待抓取的
-ACTIVE_REDIS_KEY = 'active' # 激活中，正在抓取的
+QUEUE_REDIS_KEY = 'queue' # 抓取队列中等待抓取的
+QUEUE_ACTIVE_REDIS_KEY = 'queue_active' # 抓取激活中，正在抓取的
+RECENTLY_REDIS_KEY = 'recently' # 最近活动的用户列表
+RECENTLY_ACTIVE_REDIS_KEY = 'recently_active' # 正在更新中的最近活动的用户
 
 
 class YouxiaRedis:
@@ -48,13 +50,12 @@ class YouxiaRedisImpl(YouxiaRedis):
         """  将id放置到redis队列
         Args:
             id (str): 用户id
-       Returns:
-           int: redis 队列长度
        """
         self.redis.lpush(QUEUE_REDIS_KEY, id)
 
     def fetch_from_queue(self):
-        """  从队列中取出一个值
+        """ 从队列中取出一个值
+        现进先出原则
 
        Returns:
            int: 用户id
@@ -62,10 +63,10 @@ class YouxiaRedisImpl(YouxiaRedis):
         return self.redis.rpop(QUEUE_REDIS_KEY)
 
     def queue_size(self):
-        """  获取redis队列长度
+        """  获取redis中queue列表的长度
 
        Returns:
-           int: redis 队列长度
+           int: redis queue列表长度
        """
         return self.redis.llen(QUEUE_REDIS_KEY)
 
@@ -88,20 +89,129 @@ class YouxiaRedisImpl(YouxiaRedis):
             raise YouxiaRedisException('Redis连接失败: ' + e.message.encode())
 
     def put_in_active_list(self, id):
-        self.redis.lpush(ACTIVE_REDIS_KEY, id)
+        """
+        将id放入redis的 active 列表中
+        active列表中维护的都是正在进行抓取的用户id
+
+        Args:
+            id (int): 用户ID
+        """
+        self.redis.lpush(QUEUE_ACTIVE_REDIS_KEY, id)
 
     def active_size(self):
-        return self.redis.llen(ACTIVE_REDIS_KEY)
+        """
+        返回active列表长度
+
+        Args:
+            id (int): 用户ID
+        Returns:
+           int: active列表长度
+        """
+        return self.redis.llen(QUEUE_ACTIVE_REDIS_KEY)
 
     def fetch_from_active_list(self):
-        return self.redis.rpop(ACTIVE_REDIS_KEY)
+        """
+        从active列表中取出一条数据
+
+        Returns:
+           int: 用户ID
+        """
+        return self.redis.rpop(QUEUE_ACTIVE_REDIS_KEY)
 
     def move_active_to_queue(self):
+        """
+        将active列表中所有数据移到queue列表
+        """
         while self.active_size() > 0:
             self.redis.rpush(QUEUE_REDIS_KEY, self.fetch_from_active_list())
 
     def remove_from_active_list(self, uid):
-        self.redis.lrem(ACTIVE_REDIS_KEY, 1, uid)
+        """
+        将用户id为uid的数据从active列表中移除
+
+        Args:
+            id (int): 要移除的用户ID
+        """
+        self.redis.lrem(QUEUE_ACTIVE_REDIS_KEY, 1, uid)
+
+    def put_in_recently_list(self, uid):
+        """
+        用用户uid放到最近活动的列表中
+
+        Args:
+            uid (int): 用户id
+        """
+        self.redis.lpush(RECENTLY_REDIS_KEY, uid)
+
+    def fetch_from_recently_list(self):
+        """
+        从最近活动的列表中取出一个用户id进行抓取
+
+        Returns:
+           int: 用户ID
+        """
+        return self.redis.rpop(RECENTLY_REDIS_KEY)
+
+    def fetch_from_recently_active_list(self):
+        """
+        从最近活动的列表中取出一个用户id
+
+        """
+        return self.redis.rpop(RECENTLY_ACTIVE_REDIS_KEY)
+
+    def put_in_recently_active_list(self, uid):
+        """
+        用用户uid放到最近活动更新中列表
+
+        Args:
+            uid (int): 用户id
+        """
+        self.redis.lpush(RECENTLY_ACTIVE_REDIS_KEY, uid)
+
+    def remove_from_recently_list(self, uid):
+        """
+        从最近活动的列表中取出一个用户id进行抓取
+
+        Args:
+            uid (int): 用户id
+        """
+        self.redis.lrem(RECENTLY_REDIS_KEY, 1, uid)
+
+    def remove_from_recently_active_list(self, uid):
+        """
+        从最近活动抓取列表中取出一个用户id进行抓取
+
+        Args:
+            uid (int): 用户id
+        """
+        self.redis.lrem(RECENTLY_ACTIVE_REDIS_KEY, 1, uid)
+
+    def recently_active_size(self):
+        """
+        返回recently active列表长度
+
+        Returns:
+           int: recently active列表长度
+        """
+        return self.redis.llen(RECENTLY_ACTIVE_REDIS_KEY)
+
+    def recently_size(self):
+        """
+        返回recently 列表长度
+
+        Returns:
+           int: recently 列表长度
+        """
+        return self.redis.llen(RECENTLY_REDIS_KEY)
+
+    def move_recently_active_to_recently_list(self):
+        """
+        将最近活动抓取中列表中的数据移到最近活动列表中准备
+        重新抓取
+        """
+
+        while self.recently_active_size():
+            self.put_in_recently_list(self.fetch_from_recently_active_list())
 
 
 class YouxiaRedisException(Exception):

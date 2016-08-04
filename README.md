@@ -6,6 +6,7 @@
 ## Environment ##
 
 - **python 2.7**
+- **Redis**
 
 ## Dependency
 
@@ -53,3 +54,6 @@ if __name__ == '__main__':	  #sqlite3	  #redis ip
 
 
 
+## Licensing
+
+"The code in this project is licensed under MIT license."

@@ -267,6 +267,19 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         user = self.get_user_by_id(uid)
         return model.Location.select().where(model.Location.user == user).count()
 
+    def get_recent_active_user(self):
+        """
+        获取最近活动的用户 默认 1 天内
+        按用户id去重
+
+        Returns:
+            list[model.Location]: 用户列表
+        """
+        today = datetime.datetime.today()
+        yesterday = today - datetime.timedelta(1)
+        return model.Location.select().where(model.Location.time.between(yesterday, today)).group_by(model.Location.user)
+
+
     def __fill_json_to_user_info__(self, user_info, user_info_json_dict):
         date_format = '%Y-%M-%d'
         user_info.start_time = datetime.datetime.strptime(user_info_json_dict['STARTTIME'], date_format)

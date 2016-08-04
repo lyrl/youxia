@@ -6,7 +6,7 @@ import youxia_connector_compoent as connector_compoent
 import youxia_compoent as youxia_repository
 import youxia_redis_compoent as yxredis
 import util
-
+import sys
 
 logger = util.get_logger("YouxiaCrawler")
 
@@ -21,28 +21,57 @@ class YouxiaCrawler(object):
         self.repo = youxia_repository.YouxiaCompoentImpl(self.sqlite_file, create_table)
         self.redis = yxredis.YouxiaRedisImpl(redis_host)
 
-    def run(self):
-        logger.debug("[爬虫进程] - 初始化成功!")
+    def run(self, run_as):
         while True:
 
-            # active & queue 列表中数据为空
-            if self.redis.queue_size() == 0 and self.redis.active_size() == 0:
-                top_id = self.repo.get_top_user_id()
+            if run_as == 'crawler':
+                logger.debug("[爬虫进程] - 初始化成功!")
+                self.youxia_new_user_crawler()
+            elif run_as == 'updater':
+                logger.debug("[位置更新] - 初始化成功!")
+                self.rencently_active_user_location_updater()
+            else:
+                logger.error("[主进程] - run_as 参数错误!")
+                sys.exit()
 
-                if top_id == 0:
-                    top_id = IDS_INIT_START
-                    logger.debug("[爬虫进程] - 程序第一次启动将自动从%s开始生成id!" % IDS_INIT_START)
-                self.generate_ids_put_in_redis(top_id, GENERATE_SIZE)
+    def youxia_new_user_crawler(self):
+        # active & queue 列表中数据为空
+        if self.redis.queue_size() == 0 and self.redis.active_size() == 0:
+            top_id = self.repo.get_top_user_id()
 
-            # 将active列表中的数据移到queue中重新进行抓取
-            if self.redis.active_size() > 0:
-                logger.debug("[爬虫进程] - 检测到上次程序异常退出，将优先执行未处理的id!" )
-                self.redis.move_active_to_queue()
+            if top_id == 0:
+                top_id = IDS_INIT_START
+                logger.debug("[爬虫进程] - 程序第一次启动将自动从%s开始生成id!" % IDS_INIT_START)
+            self.generate_ids_put_in_redis(top_id, GENERATE_SIZE)
 
-            while self.redis.queue_size() != 0:
-                id = self.redis.fetch_from_queue()
-                self.redis.put_in_active_list(id)
-                self.fetch_and_save_to_db(id)
+        # 将active列表中的数据移到queue中重新进行抓取
+        if self.redis.active_size() > 0:
+            logger.debug("[爬虫进程] - 检测到上次程序异常退出，将优先执行未处理的id!")
+            self.redis.move_active_to_queue()
+        while self.redis.queue_size() != 0:
+            id = self.redis.fetch_from_queue()
+            self.redis.put_in_active_list(id)
+            self.fetch_and_save_to_db(id)
+
+    def rencently_active_user_location_updater(self):
+        # 最近活动的数据
+        recent_active_user_list = self.repo.get_recent_active_user()
+        logger.debug("[爬虫进程] - 近一天活动的用户 %s " % (recent_active_user_list.count()))
+
+        if recent_active_user_list.count():
+            for i in recent_active_user_list:
+                self.redis.put_in_recently_list(i.user.uid)
+
+        if self.redis.recently_active_size():
+            self.redis.move_recently_active_to_recently_list()
+
+        while self.redis.recently_size():
+            id = self.redis.fetch_from_recently_list()
+            self.redis.put_in_recently_active_list(id)
+
+            user = self.repo.get_user_by_id(id)
+
+            self.fetch_and_save_location_to_db(id, user)
 
     def fetch_and_save_to_db(self, uid):
         #用户信息
@@ -68,7 +97,7 @@ class YouxiaCrawler(object):
         else:
             self.repo.save_device_info(device_info_json, uid)
 
-    def fetch_and_save_location_to_db(self, uid, user_info):
+    def fetch_and_save_location_to_db(self, uid, user_info, caller='updater'):
         try:
             location_info_json = self.connector.get_location(user_info.imei)
             json.loads(location_info_json)
@@ -79,6 +108,9 @@ class YouxiaCrawler(object):
             self.repo.update_location(location_info_json, uid)
         else:
             self.repo.save_location(location_info_json, uid)
+
+        if caller == 'updater':
+            self.redis.remove_from_recently_active_list(uid)
 
     def fetch_and_save_user_info_to_db(self, uid):
         try:

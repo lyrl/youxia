@@ -10,7 +10,6 @@ import youxia.compoents.youxia_compoent as yxc
 import datetime
 
 
-
 class YouxiaTestCase(unittest.TestCase):
 
     def test_defrred_database(self):
@@ -38,6 +37,13 @@ class YouxiaTestCase(unittest.TestCase):
     def test_count(self):
         a = yxc.YouxiaCompoentImpl("sqlite3.db")
         print a.count_location_by_user_id(1000271860)
+
+    def test_get_recent_active_user(self):
+        a = yxc.YouxiaCompoentImpl("sqlite3.db")
+        b = a.get_recent_active_user()
+
+
+
 
 
 if __name__ == '__main__':

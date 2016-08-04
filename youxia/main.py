@@ -9,5 +9,6 @@ if path not in sys.path:
 import compoents.youxia_crawler_compoent as yxc
 
 if __name__ == '__main__':
+    run_as = sys.argv[1] if sys.argv[1] else 'crawler'
     yxcrawler = yxc.YouxiaCrawler("youxia.db", create_table=False)
-    yxcrawler.run()
+    yxcrawler.run(run_as)
