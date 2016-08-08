@@ -90,7 +90,10 @@ class YouxiaCrawler(object):
                 i.district = info['district']
                 i.formatted_address = info['formatted_address']
 
-                i.save()
+                try:
+                    i.save()
+                except Exception:
+                    logger.debug("[GPS反查] - 用户 %s 保存失败！" % (i.uid))
                 logger.debug("[GPS反查] - 用户 %s %s 保存成功！" % (i.uid, ','.join(info)))
 
     def rencently_active_user_location_updater(self):

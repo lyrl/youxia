@@ -7,6 +7,7 @@ from abc import ABCMeta, abstractmethod
 import util
 import redis
 
+logger = util.get_logger("GpsReverse")
 
 class GpsReverse:
     __metaclass__ = ABCMeta
@@ -25,6 +26,7 @@ class GpsReverseImpl(GpsReverse):
         self.connetor = BaiduConnector(appkey)
 
     def send_gps_reverse_query(self, log, lat):
+
         """
         发送经纬度反查请求
 
@@ -36,7 +38,6 @@ class GpsReverseImpl(GpsReverse):
         Returns:
             dict: 字典
         """
-
         return self.connetor.send_gps_reverse_query(log, lat);
 
 
@@ -75,6 +76,8 @@ class BaiduConnector(GpsReverse):
         country = addressComponent['country']
         district = addressComponent['district']
         province = addressComponent['province']
+
+        logger.debug("[GPS反查] - 查询位置 log %s lat %s 返回 %s ！", log, lat, gps_dict)
 
         return {
             'country': country,
