@@ -36,7 +36,7 @@ class YouxiaCrawler(object):
             elif run_as == 'updater':
                 logger.debug("[位置更新] - 初始化成功!")
                 self.rencently_active_user_location_updater()
-            elif run_as == 'gps_reverse':
+            elif run_as == 'reverser':
                 logger.debug("[GPS反查] - 初始化成功!")
                 self.gps_reverse()
             else:
