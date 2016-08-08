@@ -135,7 +135,10 @@ class YouxiaCrawler(object):
 
             user = self.repo.get_user_by_id(id)
 
-            self.fetch_and_save_location_to_db(id, user)
+            try:
+                self.fetch_and_save_location_to_db(id, user)
+            except Exception:
+                continue
             self.redis.register('updater:'+str(tm), 5)
 
     def fetch_and_save_to_db(self, uid):
