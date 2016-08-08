@@ -24,6 +24,13 @@ class UserInfo(BaseModel):
     update_time = peewee.DateTimeField(null=True)
     last_fetch_time = peewee.DateTimeField(null=True)
 
+    country = peewee.CharField(null=True)
+    province = peewee.CharField(null=True)
+    city = peewee.CharField(null=True)
+    district = peewee.CharField(null=True)
+    formatted_address = peewee.CharField(null=True)
+
+
 
 class Location(BaseModel):
     user = peewee.ForeignKeyField(UserInfo, to_field='uid')

@@ -10,6 +10,7 @@ import datetime
 import youxia_connector_compoent as connector_compoent
 import youxia_compoent as youxia_repository
 import youxia_redis_compoent as yxredis
+import youxia_gps_reverse_compoent as gps
 import util
 import sys
 
@@ -19,15 +20,13 @@ GENERATE_SIZE = 5000 # 每次自动生成的id数量
 IDS_INIT_START = 1000000000
 
 
-
-
-
 class YouxiaCrawler(object):
-    def __init__(self, sqlite_file, redis_host='localhost', create_table=False):
+    def __init__(self, sqlite_file, redis_host='localhost', appkey='', create_table=False):
         self.sqlite_file = sqlite_file
         self.connector = connector_compoent.YouxiaConnectorCompoentImpl()
         self.repo = youxia_repository.YouxiaCompoentImpl(self.sqlite_file, create_table)
         self.redis = yxredis.YouxiaRedisImpl(redis_host)
+        self.reverser =  gps.GpsReverseImpl(appkey)
 
     def run(self, run_as):
         while True:
@@ -37,6 +36,9 @@ class YouxiaCrawler(object):
             elif run_as == 'updater':
                 logger.debug("[位置更新] - 初始化成功!")
                 self.rencently_active_user_location_updater()
+            elif run_as == 'gps_reverse':
+                logger.debug("[GPS反查] - 初始化成功!")
+                self.gps_reverse()
             else:
                 logger.error("[主进程] - run_as 参数错误!")
                 sys.exit()
@@ -66,6 +68,23 @@ class YouxiaCrawler(object):
             self.fetch_and_save_to_db(id)
 
             self.redis.register('crawler:' + str(tm), 5)
+
+    def gps_reverse(self):
+        tm = time.time()
+
+        users = self.repo.find_need_gps_reverse_user()
+
+        for i in users:
+            location = self.repo.get_last_location(i.uid)
+            info = self.reverser.send_gps_reverse_query(location.longitude, location.latitude)
+
+            i.country = info['country']
+            i.province = info['province']
+            i.city = info['city']
+            i.district = info['district']
+            i.formatted_address = info['formatted_address']
+
+            i.save()
 
     def rencently_active_user_location_updater(self):
 

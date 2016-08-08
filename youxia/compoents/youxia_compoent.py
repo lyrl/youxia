@@ -320,6 +320,15 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         """
         return model.UserInfo.select()
 
+    def find_need_gps_reverse_user(self):
+        """
+        获取所有没有位置描述信息的用户
+
+        Returns:
+            list[model.UserInfo]: 所有用户信息的列表
+        """
+        return model.UserInfo.select().where(model.UserInfo.formatted_address.is_null())
+
     def __fill_json_to_user_info__(self, user_info, user_info_json_dict):
         date_format = '%Y-%M-%d'
         user_info.start_time = datetime.datetime.strptime(user_info_json_dict['STARTTIME'], date_format)
@@ -359,7 +368,6 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         device_info.create_time = datetime.datetime.now()
         device_info.update_time = datetime.datetime.now()
         device_info.last_fetch_time = datetime.datetime.now()
-
 
 
 class YouxiaException(Exception):
