@@ -235,11 +235,11 @@ class YouxiaRedisImpl(YouxiaRedis):
         self.expire(key, seconds)
 
     def do_not_query_with_in_hours(self, uid, hours):
-        self.redis.set(DO_NOT_QUERY_IN_24_HOURS_PREFIX+uid)
-        self.redis.expire(DO_NOT_QUERY_IN_24_HOURS_PREFIX+uid, hours * 60 * 60)
+        self.redis.set(DO_NOT_QUERY_IN_24_HOURS_PREFIX+str(uid))
+        self.redis.expire(DO_NOT_QUERY_IN_24_HOURS_PREFIX+str(uid), hours * 60 * 60)
 
     def is_in_do_not_query_list(self,uid):
-        return True if self.redis.get(DO_NOT_QUERY_IN_24_HOURS_PREFIX+uid) else False
+        return True if self.redis.get(DO_NOT_QUERY_IN_24_HOURS_PREFIX+str(uid)) else False
 
 class YouxiaRedisException(Exception):
     def __init__(self, msg):
