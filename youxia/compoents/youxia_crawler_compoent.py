@@ -15,7 +15,7 @@ import sys
 
 logger = util.get_logger("YouxiaCrawler")
 
-GENERATE_SIZE = 10000 # 每次自动生成的id数量
+GENERATE_SIZE = 5000 # 每次自动生成的id数量
 IDS_INIT_START = 1000000000
 
 
@@ -79,6 +79,11 @@ class YouxiaCrawler(object):
             if recent_active_user_list.count():
                 for i in recent_active_user_list:
                     self.redis.put_in_recently_list(i.user.uid)
+            else: # 如果没有最近一天活动的记录，则更新全部用户信息
+                logger.debug("[爬虫进程] - 没有最近一天活动的记录，将更新全部用户信息 ")
+                all_user_list = self.repo.find_all()
+                for u in all_user_list:
+                    self.redis.put_in_recently_list(u.user.uid)
 
         if self.redis.recently_active_size():
             logger.debug("[爬虫进程] - 将上次抓取未完成的记录 %s 移动到recently" % self.redis.recently_active_size())
@@ -143,6 +148,7 @@ class YouxiaCrawler(object):
             location = self.repo.save_location(location_info_json, uid)
 
         if caller == 'updater':
+            # 如果速度 > 0 则作为有效数据
             if location.speed > 0:
                 last_time = location.time
                 now = datetime.datetime.now()

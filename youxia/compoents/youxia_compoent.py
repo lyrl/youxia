@@ -311,6 +311,14 @@ class YouxiaCompoentImpl(YouxiaCompoent):
 
         return last_location
 
+    def find_all(self):
+        """
+        获得所有用户
+
+        Returns:
+            list[model.UserInfo]: 所有用户信息的列表
+        """
+        return model.UserInfo.select()
 
     def __fill_json_to_user_info__(self, user_info, user_info_json_dict):
         date_format = '%Y-%M-%d'
@@ -351,7 +359,6 @@ class YouxiaCompoentImpl(YouxiaCompoent):
         device_info.create_time = datetime.datetime.now()
         device_info.update_time = datetime.datetime.now()
         device_info.last_fetch_time = datetime.datetime.now()
-
 
 
 
