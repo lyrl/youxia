@@ -106,6 +106,8 @@ class YouxiaCrawler(object):
                     logger.debug("[GPS反查] - 用户 %s 保存失败！" % (i.uid))
 
                 logger.debug("[GPS反查] - 用户 %s %s 保存成功！" % (i.uid, ','.join(info)))
+            else:
+                self.redis.do_not_query_with_in_hours(i.uid, 1)
 
     def rencently_active_user_location_updater(self):
 
