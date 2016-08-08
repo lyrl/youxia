@@ -82,7 +82,7 @@ class YouxiaCrawler(object):
         for i in users:
             location = self.repo.get_last_location(i.uid)
 
-            if self.redis.is_in_do_not_query_list():
+            if self.redis.is_in_do_not_query_list(i.uid):
                 logger.debug("[GPS反查] - 用户 %s 已经限制1小时内不再查询，请稍后再试！" % i.uid)
                 continue
 
