@@ -75,8 +75,6 @@ class YouxiaCrawler(object):
     def gps_reverse(self):
         tm = time.time()
 
-
-
         users = self.repo.find_need_gps_reverse_user()
 
         logger.debug("[GPS反查] - 有%s用户位置需要反查！" % users.count())
@@ -85,7 +83,10 @@ class YouxiaCrawler(object):
             location = self.repo.get_last_location(i.uid)
 
             if location:
-                info = self.reverser.send_gps_reverse_query(location.longitude, location.latitude)
+                try:
+                    info = self.reverser.send_gps_reverse_query(location.longitude, location.latitude)
+                except Exception:
+                    continue
 
                 i.country = info['country']
                 i.province = info['province']

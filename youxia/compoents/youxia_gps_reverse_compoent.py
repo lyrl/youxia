@@ -68,10 +68,12 @@ class BaiduConnector(GpsReverse):
         Returns:
             dict: 字典
         """
+        content = None
         try:
             content = urllib2.urlopen(self.query_uri % (self.appkey, lat, log)).read()
         except Exception:
             logger.error("[GPS反查] - 查询失败 %s ！")
+            raise GpsReverseException("反查信息失败!")
 
         gps_dict = json.loads(content)
 
