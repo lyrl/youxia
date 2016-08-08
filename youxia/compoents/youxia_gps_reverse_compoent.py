@@ -68,7 +68,12 @@ class BaiduConnector(GpsReverse):
         Returns:
             dict: 字典
         """
-        gps_dict = json.loads(urllib2.urlopen(self.query_uri % (self.appkey, lat, log)).read())
+        try:
+            content = urllib2.urlopen(self.query_uri % (self.appkey, lat, log)).read()
+        except Exception:
+            logger.error("[GPS反查] - 查询失败 %s ！")
+
+        gps_dict = json.loads(content)
 
         addressComponent = gps_dict['result']['addressComponent']
         formatted_address = gps_dict['result']['formatted_address']
