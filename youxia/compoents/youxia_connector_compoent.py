@@ -153,7 +153,8 @@ class YouxiaConnectorCompoentImpl(YouxiaConnectorCompoent):
             raise YouxiaConnectorException("获取用户信息失败 id : %s , ext: %s" % (id, e.message))
 
         if content:
-            logger.debug(u"[接口访问] - 获取用户信息成功 id : %s , content: %s" % (id, content))
+            pass
+            #logger.debug(u"[接口访问] - 获取用户信息成功 id : %s , content: %s" % (id, content))
         else:
             raise YouxiaConnectorException(u"获取用户信息失败 id : %s 返回内容为空" % (id))
 
