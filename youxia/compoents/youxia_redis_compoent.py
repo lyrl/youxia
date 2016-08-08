@@ -13,6 +13,7 @@ RECENTLY_REDIS_KEY = 'recently' # 最近活动的用户列表
 RECENTLY_ACTIVE_REDIS_KEY = 'recently_active' # 正在更新中的最近活动的用户
 RECENTLY_5_MIN_REDIS_KEY = 'recently_5_min' # 5分钟内有活动的
 
+DO_NOT_QUERY_IN_24_HOURS_PREFIX = "DO_NOT_QUERY_IN_24_HOURS_PREFIX:"
 
 class YouxiaRedis:
     __metaclass__ = ABCMeta
@@ -230,6 +231,15 @@ class YouxiaRedisImpl(YouxiaRedis):
     def recently_5_min_size(self):
         return self.redis.llen(RECENTLY_5_MIN_REDIS_KEY)
 
+    def expire(self,key,seconds):
+        self.expire(key, seconds)
+
+    def do_not_query_with_in_24_hour(self, uid):
+        self.redis.set(DO_NOT_QUERY_IN_24_HOURS_PREFIX+uid);
+        self.redis.expire(DO_NOT_QUERY_IN_24_HOURS_PREFIX+uid, 24 * 60 * 60)
+
+    def is_in_do_not_query_list(self,uid):
+        return True if self.redis.get(DO_NOT_QUERY_IN_24_HOURS_PREFIX+uid) else False
 
 class YouxiaRedisException(Exception):
     def __init__(self, msg):

@@ -82,9 +82,14 @@ class YouxiaCrawler(object):
         for i in users:
             location = self.repo.get_last_location(i.uid)
 
+            if self.redis.is_in_do_not_query_list():
+                logger.debug("[GPS反查] - 用户 %s 已经限制24小时内不再查询，请稍后再试！" % i.uid)
+                continue
+
             if location:
                 try:
                     info = self.reverser.send_gps_reverse_query(location.longitude, location.latitude)
+                    self.redis.do_not_query_with_in_24_hour(i.uid)
                 except Exception:
                     continue
 
@@ -97,7 +102,9 @@ class YouxiaCrawler(object):
                 try:
                     i.save()
                 except Exception:
+                    self.redis.do_not_query_with_in_24_hour(i.uid)
                     logger.debug("[GPS反查] - 用户 %s 保存失败！" % (i.uid))
+
                 logger.debug("[GPS反查] - 用户 %s %s 保存成功！" % (i.uid, ','.join(info)))
 
     def rencently_active_user_location_updater(self):
