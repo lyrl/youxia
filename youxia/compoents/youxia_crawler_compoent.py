@@ -65,7 +65,10 @@ class YouxiaCrawler(object):
         while self.redis.queue_size() != 0:
             id = self.redis.fetch_from_queue()
             self.redis.put_in_active_list(id)
-            self.fetch_and_save_to_db(id)
+            try:
+                self.fetch_and_save_to_db(id)
+            except Exception:
+                continue
 
             self.redis.register('crawler:' + str(tm), 5)
 
